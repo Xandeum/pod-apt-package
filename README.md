@@ -1,14 +1,18 @@
 # Xandeum Pod APT Repository
 
-This repository contains the official Debian (`.deb`) packages for Pod, distributed via an APT repository.
+## 🛠️ Installation Instructions
 
-## Quick Installation
+To install the `pod` binary on any Debian/Ubuntu-based system:
 
-Run the following commands to add the repository and install the `pod` package.
+```bash
+# Step 1: Enable HTTPS transport
+sudo apt-get install -y apt-transport-https ca-certificates
 
-**1. Add the Repository:**
+# Step 2: Add the Xandeum APT repository
+echo "deb [trusted=yes] https://xandeum.github.io/pod-apt-package/ stable main" | sudo tee /etc/apt/sources.list.d/xandeum-pod.list
 
-This command adds the Xandeum repository to your system's package sources. The `[trusted=yes]` flag bypasses the need for a GPG key.
+# Step 3: Update package index
+sudo apt-get update
 
-```sh
-echo "deb [trusted=yes] [https://xandeum.github.io/pod-apt-package/](https://xandeum.github.io/pod-apt-package/) stable main" | sudo tee /etc/apt/sources.list.d/xandeum-pod.list
+# Step 4: Install the pod binary
+sudo apt-get install pod
