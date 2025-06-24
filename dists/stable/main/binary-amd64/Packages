@@ -4,11 +4,26 @@ Architecture: amd64
 Maintainer: Xandeum Labs
 Installed-Size: 4432
 Depends: libc6 (>= 2.38)
-Filename: /home/runner/work/pod/pod/apt-repo/pool/main/pod_0.1.1-1_amd64.deb
+Filename: pool/main/pod_0.1.1-1_amd64.deb
 Size: 1504436
 MD5sum: 8fcdac14a0f3a07a9213b8512d12308b
 SHA1: 5ffda343057ead4f5e73b42abf074a001c7bb164
 SHA256: 95074689ea517cdfa871c90cb213b5bc1d3f4b82e2a6e268ddfe60f8af5eac0e
+Section: net
+Priority: optional
+Description: [generated from Rust crate pod]
+
+Package: pod
+Version: 0.1.2-1
+Architecture: amd64
+Maintainer: Xandeum Labs
+Installed-Size: 4432
+Depends: libc6 (>= 2.38)
+Filename: pool/main/pod_0.1.2-1_amd64.deb
+Size: 1504680
+MD5sum: c01e3850724b700a45eb99e825d0e79a
+SHA1: 4ec1cf279df90ed2f52a1252445debc686433dba
+SHA256: e6ba746264c1d53597e5867732e009c4a7213f3a63157b215a97310a3c3b20e0
 Section: net
 Priority: optional
 Description: [generated from Rust crate pod]
