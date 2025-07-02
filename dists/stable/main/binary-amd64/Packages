@@ -73,3 +73,18 @@ Section: net
 Priority: optional
 Description: [generated from Rust crate pod]
 
+Package: pod
+Version: 0.3.2-1
+Architecture: amd64
+Maintainer: Xandeum Labs
+Installed-Size: 4412
+Depends: libc6 (>= 2.38)
+Filename: pool/main/pod_0.3.2-1_amd64.deb
+Size: 1499236
+MD5sum: dbf32c1cf1a1c1e4c4878e9855deb622
+SHA1: a2a7c7a4ab6a296e961c8d69f33114eac49913a2
+SHA256: 5f82b0541439117971332123390964893924977d1c5bd82d06f700846a33a229
+Section: net
+Priority: optional
+Description: [generated from Rust crate pod]
+
