@@ -110,10 +110,10 @@ Maintainer: Xandeum Labs
 Installed-Size: 4428
 Depends: libc6 (>= 2.38)
 Filename: pool/main/pod_0.3.4-1_amd64.deb
-Size: 1504636
-MD5sum: f2b8fe9ac71fe829375fc30915010baa
-SHA1: 9d2556410d0aedebd8fbbb54bf424d1a9c3a316a
-SHA256: 193da992bc71e8148dc67000bb3a21a0ba866feae24d66f63ebde21510bb7584
+Size: 1504724
+MD5sum: c4b777d6ba90292b3c3fb9f9a904302d
+SHA1: 359a732df4ccfe70a4b7925b0b83eab9deabaf47
+SHA256: 847e32a955c44b44845162edeb076e842e9b01a6cb6070db04d160eaf9b11c11
 Section: net
 Priority: optional
 Description: [generated from Rust crate pod]
