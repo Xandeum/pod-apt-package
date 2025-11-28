@@ -168,13 +168,13 @@ Package: pod
 Version: 0.5.0-1
 Architecture: amd64
 Maintainer: Xandeum Labs
-Installed-Size: 9419
+Installed-Size: 9462
 Depends: libc6 (>= 2.38), libssl3t64 (>= 3.0.0)
 Filename: pool/main/pod_0.5.0-1_amd64.deb
-Size: 2526884
-MD5sum: c772bc4592e2aa78c08ae87ef2aa2b89
-SHA1: 546a94d810317cc7b7f31b2ff9481a0b19f645cc
-SHA256: fd38d2cb45b3e976dd325aa6a588b3e2e58fdf3dbbebc43442822bc7514b2416
+Size: 2541088
+MD5sum: c70ff7ac67e621c94fd0656819415e62
+SHA1: f7454e1d8f9bc611b0f440ff6ce92629bb1abf32
+SHA256: 665e1318c31ce3ad6a04e09aed76486d1490bbd742bfbf45bc6a9686a91d3b50
 Section: net
 Priority: optional
 Homepage: https://github.com/xandeum/pod
