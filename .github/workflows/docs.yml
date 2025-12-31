@@ -39,9 +39,10 @@ jobs:
     
     - name: Install dependencies
       run: |
+        pip install --upgrade pip
         pip install mkdocs-material
+        pip install pymdown-extensions
         pip install mkdocs-minify-plugin
-        pip install mkdocs-git-revision-date-localized-plugin
         pip install mike
     
     - name: Extract version from Cargo.toml
@@ -75,30 +76,25 @@ jobs:
         token: ${{ secrets.PAT }}
         fetch-depth: 0
     
-    - name: Initialize gh-pages branch if needed
-      run: |
-        cd doc-repo
-        
-        # Check if gh-pages branch exists
-        if git ls-remote --heads origin gh-pages | grep gh-pages; then
-          echo "gh-pages branch exists, checking it out..."
-          git fetch origin gh-pages
-          git checkout gh-pages
-        else
-          echo "Creating new gh-pages branch..."
-          git checkout --orphan gh-pages
-          git rm -rf . 2>/dev/null || true
-          echo "# Xandeum Pod Documentation" > README.md
-          git add README.md
-          git commit -m "Initialize gh-pages branch for documentation"
-          git push origin gh-pages
-        fi
-    
     - name: Deploy documentation with mike
       run: |
         cd doc-repo
         
+        # Ensure we're on a proper branch (mike needs a base branch)
+        echo "Setting up base branch for mike..."
+        if git show-ref --verify --quiet refs/heads/main; then
+          git checkout main
+          echo "Using existing main branch"
+        elif git show-ref --verify --quiet refs/heads/master; then
+          git checkout master
+          echo "Using existing master branch"
+        else
+          git checkout -b main
+          echo "Created new main branch"
+        fi
+        
         # Copy source files to doc-repo
+        echo "Copying documentation files..."
         cp -r ${GITHUB_WORKSPACE}/docs .
         cp ${GITHUB_WORKSPACE}/mkdocs.yml .
         

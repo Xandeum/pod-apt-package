@@ -73,7 +73,8 @@ jobs:
         if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             RELEASE_DATE=$(date +"%B %d, %Y")
             if ! grep -q "!!! info \"Version\"" docs/index.md; then
-                sed -i "/^# Xandeum Pod Documentation/a\\\\n!!! info \"Version\"\\n    This documentation is for **Xandeum Pod v${VERSION}**\\n    Released: ${RELEASE_DATE}" docs/index.md
+                # Add version info after the first heading (which contains an image)
+                sed -i "1a\\\\n!!! info \"Version\"\\n    This documentation is for **Xandeum Pod v${VERSION}**\\n    Released: ${RELEASE_DATE}" docs/index.md
             else
                 # Update existing version info
                 sed -i "s/Xandeum Pod v[0-9]\+\.[0-9]\+\.[0-9]\+/Xandeum Pod v$VERSION/g" docs/index.md

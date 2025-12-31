@@ -1,5 +1,9 @@
 # ![Xandeum Logo](assets/images/XandeumLogoStandard.png "Xandeum Logo"){ width="150" } pNode pod Documentation
 
+!!! info "Version"
+    This documentation is for **Xandeum Pod v1.2.0**
+    Released: December 31, 2025
+
 Welcome to the documentation for Xandeum pNode - a high-performance blockchain node implementation.
 
 ## Quick Start
