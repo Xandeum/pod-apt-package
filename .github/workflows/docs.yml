@@ -1,0 +1,122 @@
+name: Deploy Versioned Documentation
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on version tags like v0.4.1, v0.4.2, etc.
+    branches: 
+      - main
+      - master
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for version info
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        pip install mkdocs-material
+        pip install mkdocs-minify-plugin
+        pip install mkdocs-git-revision-date-localized-plugin
+        pip install mike
+    
+    - name: Extract version from Cargo.toml
+      id: version
+      run: |
+        VERSION=$(grep '^version = ' Cargo.toml | cut -d'"' -f2)
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "Detected version: $VERSION"
+        
+        # Check if this is a tagged release
+        if [[ $GITHUB_REF == refs/tags/v* ]]; then
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_OUTPUT
+          echo "IS_TAGGED_RELEASE=true" >> $GITHUB_OUTPUT
+          echo "This is a tagged release: $TAG_VERSION"
+        else
+          echo "IS_TAGGED_RELEASE=false" >> $GITHUB_OUTPUT
+          echo "This is a development push"
+        fi
+    
+    - name: Configure Git for deployment
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+    
+    - name: Checkout Documentation Repository
+      uses: actions/checkout@v4
+      with:
+        repository: Xandeum/pod-docs
+        path: doc-repo
+        token: ${{ secrets.PAT }}
+        fetch-depth: 0
+    
+    - name: Initialize gh-pages branch if needed
+      run: |
+        cd doc-repo
+        
+        # Check if gh-pages branch exists
+        if git ls-remote --heads origin gh-pages | grep gh-pages; then
+          echo "gh-pages branch exists, checking it out..."
+          git fetch origin gh-pages
+          git checkout gh-pages
+        else
+          echo "Creating new gh-pages branch..."
+          git checkout --orphan gh-pages
+          git rm -rf . 2>/dev/null || true
+          echo "# Xandeum Pod Documentation" > README.md
+          git add README.md
+          git commit -m "Initialize gh-pages branch for documentation"
+          git push origin gh-pages
+        fi
+    
+    - name: Deploy documentation with mike
+      run: |
+        cd doc-repo
+        
+        # Copy source files to doc-repo
+        cp -r ${GITHUB_WORKSPACE}/docs .
+        cp ${GITHUB_WORKSPACE}/mkdocs.yml .
+        
+        # Set version
+        VERSION="${{ steps.version.outputs.VERSION }}"
+        
+        # Deploy this version
+        echo "Deploying documentation for version: $VERSION"
+        mike deploy --push --update-aliases $VERSION latest
+        
+        # Set this version as the default
+        mike set-default --push latest
+        
+        echo "Documentation deployed successfully!"
+        echo "Version $VERSION is now available in the version selector"
+    
+    - name: Verify deployment
+      run: |
+        cd doc-repo
+        echo "Available versions:"
+        mike list

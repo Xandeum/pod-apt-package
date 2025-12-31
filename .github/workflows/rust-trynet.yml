@@ -1,0 +1,106 @@
+name: Build and Publish to Trynet APT Repository
+
+on:
+  push:
+    branches:
+      - trynet
+
+jobs:
+  publish-trynet-package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      repository-projects: write
+    steps:
+      - name: Checkout pod repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+      
+      - name: Install Protocol Buffer Compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          protoc --version
+      
+      - name: Install cargo-deb
+        run: cargo install cargo-deb
+      
+      # Modify version to include trynet identifier
+      - name: Update package version for trynet
+        run: |
+          # Get current version from Cargo.toml
+          VERSION=$(grep '^version = ' Cargo.toml | head -1 | cut -d'"' -f2)
+          COMMIT_SHORT=$(git rev-parse --short HEAD)
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          TRYNET_VERSION="${VERSION}-trynet.${TIMESTAMP}.${COMMIT_SHORT}"
+          
+          # Update Cargo.toml with trynet version
+          sed -i "s/^version = \".*\"/version = \"${TRYNET_VERSION}\"/" Cargo.toml
+          
+          echo "Building trynet version: ${TRYNET_VERSION}"
+          echo "TRYNET_VERSION=${TRYNET_VERSION}" >> $GITHUB_ENV
+      
+      - name: Build Debian package
+        run: cargo deb
+
+      - name: Checkout Trynet APT repository
+        uses: actions/checkout@v4
+        with:
+          repository: Xandeum/trynet-packages
+          path: trynet-repo
+          token: ${{ secrets.PAT }}
+
+      - name: Update Trynet APT repository metadata
+        run: |
+          # Define paths
+          REPO_DIR="${GITHUB_WORKSPACE}/trynet-repo"
+          DEB_DIR="${GITHUB_WORKSPACE}/target/debian"
+
+          # Create the repository structure
+          mkdir -p "${REPO_DIR}/dists/stable/main/binary-amd64"
+          mkdir -p "${REPO_DIR}/pool/main"
+
+          # Copy the built .deb package
+          cp ${DEB_DIR}/*.deb "${REPO_DIR}/pool/main/"
+
+          # Change into the repo directory
+          cd "${REPO_DIR}"
+
+          # Generate and SAVE the metadata files
+          echo "Generating and saving Packages file..."
+          dpkg-scanpackages --multiversion pool > dists/stable/main/binary-amd64/Packages
+
+          echo "Compressing Packages file..."
+          gzip -9 -c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz
+
+          echo "Generating and saving Release file..."
+          apt-ftparchive release dists/stable > dists/stable/Release
+
+      - name: Commit and push changes to trynet repo
+        run: |
+          cd "${GITHUB_WORKSPACE}/trynet-repo"
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          
+          # Forcefully add all changes, including deletions
+          git add -A .
+          
+          # Add a status log to see what git is about to commit
+          echo "--- Git status before commit: ---"
+          git status
+          
+          # Commit the changes
+          git commit --allow-empty -m "ci: Update trynet package for pod version ${{ env.TRYNET_VERSION }} (commit: ${{ github.sha }})"
+          
+          # Push changes
+          echo "--- Pushing changes to main branch ---"
+          git push origin main
+

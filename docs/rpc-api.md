@@ -1,0 +1,399 @@
+# pNode RPC (pRPC) Reference
+
+Complete reference for all JSON-RPC 2.0 methods available in Xandeum pNode.
+
+## Overview
+
+The Xandeum pNode pRPC API uses JSON-RPC 2.0 protocol over HTTP POST requests. All requests should be sent to the `/prpc` endpoint.
+
+!!! info "Base URL"
+    `http://<pnode-ip>:6000/rpc`
+    
+    **Default**: `http://127.0.0.1:6000/rpc` (private)
+
+## Network Architecture
+
+The pnode uses several network ports for different services:
+
+- **Port 6000**: pRPC API server (configurable IP binding)
+- **Port 80**: Statistics dashboard (localhost only) 
+- **Port 9001**: Gossip protocol for peer discovery and communication
+- **Port 5000**: Atlas server connection for data streaming (60-second idle timeout)
+
+### Network Environments
+
+The pod supports two network environments:
+
+**Devnet (Default)**
+- Atlas: `95.217.229.171:5000`
+- Bootstrap: `173.212.207.32:9001`
+- Gossip: `161.97.97.41`
+- Requires valid keypair
+
+**Trynet**
+- Atlas: `65.108.233.175:5000`
+- Bootstrap: `149.102.137.195:9001`
+- Gossip: `149.102.137.195`
+- Auto-generates keypair if not provided (use `--trynet` flag)
+
+## Available Methods
+
+=== "get-version"
+
+    Returns the current version of the pnode software.
+
+    ### Request
+    ```json
+    {
+      "jsonrpc": "2.0",
+      "method": "get-version",
+      "id": 1
+    }
+    ```
+
+    ### Response
+    ```json
+    {
+      "jsonrpc": "2.0",
+      "result": {
+        "version": "1.0.0"
+      },
+      "id": 1
+    }
+    ```
+
+    ### cURL Example
+    ```bash
+    curl -X POST http://127.0.0.1:6000/rpc \
+      -H "Content-Type: application/json" \
+      -d '{
+        "jsonrpc": "2.0",
+        "method": "get-version",
+        "id": 1
+      }'
+    ```
+
+=== "get-stats"
+
+    Returns comprehensive statistics about the pnode including system metrics, storage info, and network activity.
+
+    ### Request
+    ```json
+    {
+      "jsonrpc": "2.0",
+      "method": "get-stats",
+      "id": 1
+    }
+    ```
+
+    ### Response
+    ```json
+    {
+      "jsonrpc": "2.0",
+      "result": {
+        "metadata": {
+          "total_bytes": 1048576000,
+          "total_pages": 1000,
+          "last_updated": 1672531200
+        },
+        "stats": {
+          "cpu_percent": 15.5,
+          "ram_used": 536870912,
+          "ram_total": 8589934592,
+          "uptime": 86400,
+          "packets_received": 1250,
+          "packets_sent": 980,
+          "active_streams": 5
+        },
+        "file_size": 1048576000
+      },
+      "id": 1
+    }
+    ```
+
+    ### Response Fields
+
+    | Field | Type | Description |
+    |-------|------|-------------|
+    | `metadata.total_bytes` | number | Total bytes processed |
+    | `metadata.total_pages` | number | Total pages in storage |
+    | `metadata.last_updated` | number | Unix timestamp of last update |
+    | `stats.cpu_percent` | number | Current CPU usage percentage |
+    | `stats.ram_used` | number | RAM used in bytes |
+    | `stats.ram_total` | number | Total RAM available in bytes |
+    | `stats.uptime` | number | Uptime in seconds |
+    | `stats.packets_received` | number | Packets received per second |
+    | `stats.packets_sent` | number | Packets sent per second |
+    | `stats.active_streams` | number | Number of active network streams |
+    | `file_size` | number | Storage file size in bytes |
+
+=== "get-pods"
+
+    Returns a simplified list of all known peer pnodes in the network with their essential information. This method is also used by the `pod --gossip` command to display network peers. For detailed stats, use `get-pods-with-stats`.
+
+    ### Request
+    ```json
+    {
+      "jsonrpc": "2.0",
+      "method": "get-pods",
+      "id": 1
+    }
+    ```
+
+    ### Response
+    ```json
+    {
+      "jsonrpc": "2.0",
+      "result": {
+        "pods": [
+          {
+            "pubkey": "5Kq8H7NnT9xJ2wVbR3mP6fL4sU9dY7eC1aG3hK2jW8vN",
+            "version": "1.0.0",
+            "address": "192.168.1.100:9001",
+            "last_seen_timestamp": 1672574200
+          },
+          {
+            "pubkey": "7Xp9J6KnR4wM3vTcD2qS8fL5uY0eA1bH4jG6kM9pW2xQ",
+            "version": "1.0.1",
+            "address": "10.0.0.5:9001",
+            "last_seen_timestamp": 1672573900
+          }
+        ],
+        "total_count": 2
+      },
+      "id": 1
+    }
+    ```
+
+    ### Pod Fields
+
+    | Field | Type | Description |
+    |-------|------|-------------|
+    | `pubkey` | string \| null | Public key of the peer pnode |
+    | `version` | string | Software version of the peer pnode |
+    | `address` | string | IP address and port of the peer pnode |
+    | `last_seen_timestamp` | number | Unix timestamp of last contact |
+    | `total_count` | number | Total number of known pnodes |
+
+    ### CLI Usage
+    The `pod --gossip` command uses this RPC method internally:
+    ```bash
+    # Query default bootstrap node
+    pod --gossip
+    
+    # Query specific node
+    pod --gossip --rpc-ip 192.168.1.100
+    ```
+
+=== "get-pods-with-stats"
+
+    Returns a comprehensive list of all known peer pnodes in the network with detailed statistics including storage metrics, uptime, and RPC configuration. This is an extended version of `get-pods` with additional operational data.
+
+    ### Request
+    ```json
+    {
+      "jsonrpc": "2.0",
+      "method": "get-pods-with-stats",
+      "id": 1
+    }
+    ```
+
+    ### Response
+    ```json
+    {
+      "jsonrpc": "2.0",
+      "result": {
+        "pods": [
+          {
+            "address": "192.168.1.100:9001",
+            "version": "1.0.0",
+            "pubkey": "5Kq8H7NnT9xJ2wVbR3mP6fL4sU9dY7eC1aG3hK2jW8vN",
+            "last_seen_timestamp": 1672574200,
+            "storage_committed": 1073741824,
+            "storage_used": 536870912,
+            "storage_usage_percent": 50.0,
+            "rpc_port": 6000,
+            "is_public": true,
+            "uptime": 86400
+          },
+          {
+            "address": "10.0.0.5:9001",
+            "version": "1.0.1",
+            "pubkey": "7Xp9J6KnR4wM3vTcD2qS8fL5uY0eA1bH4jG6kM9pW2xQ",
+            "last_seen_timestamp": 1672573900,
+            "storage_committed": 2147483648,
+            "storage_used": 1073741824,
+            "storage_usage_percent": 50.0,
+            "rpc_port": 6000,
+            "is_public": false,
+            "uptime": 172800
+          }
+        ],
+        "total_count": 2
+      },
+      "id": 1
+    }
+    ```
+
+    ### Extended Pod Fields
+
+    | Field | Type | Description |
+    |-------|------|-------------|
+    | `address` | string | IP address and port of the peer pnode |
+    | `version` | string | Software version of the peer pnode |
+    | `pubkey` | string \| null | Public key of the peer pnode |
+    | `last_seen_timestamp` | number | Unix timestamp of last contact |
+    | `storage_committed` | number \| null | Total storage committed in bytes |
+    | `storage_used` | number \| null | Storage currently used in bytes |
+    | `storage_usage_percent` | number \| null | Percentage of committed storage used (0-100) |
+    | `rpc_port` | number \| null | Port number for RPC API endpoint |
+    | `is_public` | boolean \| null | Whether the pnode's RPC is publicly accessible |
+    | `uptime` | number \| null | Pnode uptime in seconds |
+    | `total_count` | number | Total number of known pnodes |
+
+    ### cURL Example
+    ```bash
+    curl -X POST http://127.0.0.1:6000/rpc \
+      -H "Content-Type: application/json" \
+      -d '{
+        "jsonrpc": "2.0",
+        "method": "get-pods-with-stats",
+        "id": 1
+      }'
+    ```
+
+    !!! note "Null Values"
+        Some fields may be `null` if the peer pnode hasn't reported that information yet or is running an older version that doesn't broadcast those metrics.
+
+    !!! tip "Use Case"
+        This method is ideal for network monitoring dashboards, analytics tools, and capacity planning as it provides comprehensive operational metrics for each peer in the network.
+
+## Error Handling
+
+All errors follow the JSON-RPC 2.0 specification and include standard error codes.
+
+### Method Not Found
+```json
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "code": -32601,
+    "message": "Method not found"
+  },
+  "id": 1
+}
+```
+
+### Internal Error
+```json
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "code": -32603,
+    "message": "Internal error"
+  },
+  "id": 1
+}
+```
+
+### Standard Error Codes
+
+| Code | Message | Description |
+|------|---------|-------------|
+| -32601 | Method not found | The requested method does not exist |
+| -32603 | Internal error | Server encountered an internal error |
+
+## Integration Examples
+
+### Python Example
+```python
+import requests
+import json
+
+def call_prpc(method, params=None):
+    payload = {
+        "jsonrpc": "2.0",
+        "method": method,
+        "id": 1
+    }
+    if params:
+        payload["params"] = params
+    
+    response = requests.post(
+        "http://127.0.0.1:6000/rpc",
+        json=payload,
+        headers={"Content-Type": "application/json"}
+    )
+    return response.json()
+
+# Get version
+version = call_prpc("get-version")
+print(f"pNode version: {version['result']['version']}")
+
+# Get stats
+stats = call_prpc("get-stats")
+print(f"CPU usage: {stats['result']['stats']['cpu_percent']}%")
+```
+
+### JavaScript/Node.js Example
+```javascript
+const fetch = require('node-fetch');
+
+async function callPRPC(method, params = null) {
+  const payload = {
+    jsonrpc: "2.0",
+    method: method,
+    id: 1
+  };
+  if (params) payload.params = params;
+
+  const response = await fetch('http://127.0.0.1:6000/rpc', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  
+  return await response.json();
+}
+
+// Usage
+(async () => {
+  const version = await callPRPC('get-version');
+  console.log(`pNode version: ${version.result.version}`);
+  
+  const stats = await callPRPC('get-stats');
+  console.log(`Uptime: ${stats.result.stats.uptime} seconds`);
+})();
+```
+
+### Bash/curl Example
+```bash
+#!/bin/bash
+
+PRPC_URL="http://127.0.0.1:6000/rpc"
+
+# Function to call pRPC
+call_prpc() {
+  local method=$1
+  curl -s -X POST "$PRPC_URL" \
+    -H "Content-Type: application/json" \
+    -d "{\"jsonrpc\":\"2.0\",\"method\":\"$method\",\"id\":1}"
+}
+
+# Get version
+echo "Getting version..."
+call_prpc "get-version" | jq '.result.version'
+
+# Get stats
+echo "Getting stats..."
+call_prpc "get-stats" | jq '.result.stats.cpu_percent'
+```
+
+!!! tip "Installation"
+    Install the pod via apt: `sudo apt install pod`
+
+!!! tip "Rate Limiting"
+    There are currently no rate limits on the pRPC API, but be mindful of resource usage when making frequent requests.
+
+!!! warning "Security"
+    When using `--rpc-ip 0.0.0.0`, your pRPC API will be accessible from any network interface. Ensure proper firewall rules are in place. 
