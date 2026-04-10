@@ -363,10 +363,10 @@ Maintainer: Xandeum Labs
 Installed-Size: 11808
 Depends: libc6 (>= 2.38), libssl3t64 (>= 3.0.0)
 Filename: pool/main/pod_1.3.2-1_amd64.deb
-Size: 3272732
-MD5sum: 1e18dab534e4a20ebc0d495951beba9e
-SHA1: a0e07f79c0b25084b592e7ba4a1aee0e7f4a5b9a
-SHA256: be64f1685ded11bab19eee5bbecb16274161f9db11eacf94f9b61c3c25f6dede
+Size: 3272536
+MD5sum: 741bb50918c58400ed49e98fec9b7185
+SHA1: 5d50993c1d118b14774e911637d33b547c1f28aa
+SHA256: f0fb2fe44953f32b50e81c57e71365b04fe1d2bcdef04ddfd8a89fc75f92c687
 Section: net
 Priority: optional
 Homepage: https://github.com/xandeum/pod
