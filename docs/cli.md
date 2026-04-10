@@ -18,7 +18,7 @@ Starts the pnode with default configuration:
 ### Check Version
 ```bash
 pod --version
-# Output: pod 1.3.1
+# Output: pod 1.3.2
 ```
 
 ### Display Network Gossip Peers
@@ -240,7 +240,7 @@ pod --trynet --keypair ./trynet-key.json
 
 ```bash
 pod --version
-# Output: pod 1.3.1
+# Output: pod 1.3.2
 ```
 
 ### --trynet
